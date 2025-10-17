@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useExerciseStore } from '../stores/exerciseStore'
 import { usePrStore } from '../stores/prStore'
+import { storage } from '../lib/storage'
 import Foto1 from '../assets/images/Foto1.png'
 import Foto2 from '../assets/images/Foto2.png'
 import NewExerciseModal from '../components/NewExerciseModal.vue'
@@ -16,7 +17,7 @@ const exercises = useExerciseStore()
 const pr = usePrStore()
 
 function loadPlayer() {
-  const saved = localStorage.getItem('playerSelection')
+  const saved = storage.get()
   playerId.value = saved
   if (saved === '1') { playerName.value = 'Dario'; playerImage.value = Foto1 }
   else if (saved === '2') { playerName.value = 'Matteo'; playerImage.value = Foto2 }

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import PlayerSelect from '../components/PlayerSelect.vue'
 import Foto1 from '../assets/images/Foto1.png'
 import Foto2 from '../assets/images/Foto2.png'
+import { storage } from '../lib/storage'
 
 const router = useRouter()
 const players = [
@@ -12,7 +13,7 @@ const players = [
 ]
 
 function handleSelect(player) {
-  try { localStorage.setItem('playerSelection', String(player.id)) } catch {}
+  try { storage.set(String(player.id)) } catch {}
   try { window.dispatchEvent(new Event('player-change')) } catch {}
   router.replace({ name: 'exercises' })
 }

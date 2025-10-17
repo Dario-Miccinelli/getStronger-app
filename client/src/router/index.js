@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { storage } from '../lib/storage'
 
 const HomeView = () => import('../views/HomeView.vue')
 const SelectPlayerView = () => import('../views/SelectPlayerView.vue')
@@ -18,12 +19,8 @@ export const router = createRouter({
 
 // Global guard: require player selection except on /select
 function isPlayerSelected() {
-  try {
-    const saved = localStorage.getItem('playerSelection')
-    return saved === '1' || saved === '2'
-  } catch {
-    return false
-  }
+  const saved = storage.get()
+  return saved === '1' || saved === '2'
 }
 
 router.beforeEach((to) => {

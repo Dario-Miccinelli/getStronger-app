@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePrStore } from '../stores/prStore'
 import { useExerciseStore } from '../stores/exerciseStore'
+import { storage } from '../lib/storage'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS, LineElement, PointElement, LinearScale, TimeScale, CategoryScale, Tooltip, Legend
@@ -18,7 +19,7 @@ const exerciseKey = computed(() => String(route.params.key || ''))
 const exerciseStore = useExerciseStore()
 const exercise = computed(() => exerciseStore.items.find(e => e.exerciseKey === exerciseKey.value))
 
-const playerId = ref(localStorage.getItem('playerSelection') || '')
+const playerId = ref(storage.get() || '')
 
 const entries = computed(() => pr.getAll(playerId.value, exerciseKey.value))
 
