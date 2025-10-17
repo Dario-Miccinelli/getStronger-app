@@ -11,13 +11,14 @@
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "dependencies": {
-        "cors": "^2.8.5",
-        "dotenv": "^17.2.3",
-        "express": "^5.1.0",
-        "lokijs": "^1.5.12",
-        "pg": "^8.16.3"
-    },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "lokijs": "^1.5.12",
+    "pg": "^8.16.3",
+    "serverless-http": "^3.2.0"
+  },
     "devDependencies": {
         "nodemon": "^3.1.10"
     }

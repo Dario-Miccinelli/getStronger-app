@@ -3,6 +3,10 @@ require('dotenv').config()
 const path = require('path')
 const fs = require('fs')
 
+if (process.env.VERCEL && !process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is required on Vercel (no file storage available)')
+}
+
 const hasPg = !!process.env.DATABASE_URL
 let addPr, getPrs, deletePr, listPrs
 
