@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Get Stronger</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+    <script type="module">
+      import faviconUrl from '/src/assets/images/favicon.ico';
+      const link = document.querySelector('link[rel=\"icon\"]') || (() => { const l=document.createElement('link'); l.rel='icon'; document.head.appendChild(l); return l; })();
+      link.type = 'image/x-icon';
+      link.href = faviconUrl;
+    </script>
+  </body>
+</html>

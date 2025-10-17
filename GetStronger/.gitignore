@@ -1,0 +1,26 @@
+### General
+*.log
+*.log.*
+*.out
+*.err
+*.pid
+.DS_Store
+Thumbs.db
+
+### Node
+node_modules/
+npm-debug.log*
+
+### Sub-packages
+client/node_modules/
+server/node_modules/
+client/dist/
+
+### Local dev artifacts
+server-dev.log
+client-dev.log
+server/data/
+
+### Env
+.env
+.env.*
