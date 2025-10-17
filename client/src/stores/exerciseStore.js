@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { apiFetch } from '../lib/api'
 
 export const useExerciseStore = defineStore('exercises', {
   state: () => ({
@@ -10,14 +11,14 @@ export const useExerciseStore = defineStore('exercises', {
       const ttl = 2 * 60 * 1000
       const now = Date.now()
       if (!force && this.fetchedAt && now - this.fetchedAt < ttl && this.items.length) return
-      const res = await fetch('/api/exercises')
+      const res = await apiFetch('/exercises')
       const json = await res.json()
       if (!json.ok) throw new Error('Failed to load exercises')
       this.items = json.data || []
       this.fetchedAt = now
     },
     async add(label) {
-      const res = await fetch('/api/exercises', {
+      const res = await apiFetch('/exercises', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ label })
       })

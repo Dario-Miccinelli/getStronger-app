@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { apiFetch } from '../lib/api'
 
 export const usePrStore = defineStore('pr', {
   state: () => ({
@@ -17,7 +18,7 @@ export const usePrStore = defineStore('pr', {
       const ttl = 2 * 60 * 1000
       const now = Date.now()
       if (!force && this.fetchedAt[playerId]?.[exerciseKey] && now - this.fetchedAt[playerId][exerciseKey] < ttl) return
-      const res = await fetch(`/api/prs/${playerId}/${exerciseKey}`)
+      const res = await apiFetch(`/prs/${playerId}/${exerciseKey}`)
       const json = await res.json()
       if (!json.ok) throw new Error('Failed to load PRs')
       if (!this.data[playerId]) this.data[playerId] = {}
@@ -26,7 +27,7 @@ export const usePrStore = defineStore('pr', {
       this.fetchedAt[playerId][exerciseKey] = now
     },
     async add(playerId, exerciseKey, entry) {
-      const res = await fetch('/api/prs', {
+      const res = await apiFetch('/prs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerId, exerciseKey, ...entry })
@@ -52,7 +53,7 @@ export const usePrStore = defineStore('pr', {
       const now = Date.now()
       if (!force && this.latestFetchedAt[playerId] && now - this.latestFetchedAt[playerId] < ttl) return
       // Aggregate in one call using list endpoint, server returns newest first
-      const res = await fetch(`/api/prs?playerId=${encodeURIComponent(playerId)}&limit=500`)
+      const res = await apiFetch(`/prs?playerId=${encodeURIComponent(playerId)}&limit=500`)
       const json = await res.json()
       if (!json.ok) throw new Error('Failed to load latest PRs')
       const map = {}

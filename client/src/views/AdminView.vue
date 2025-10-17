@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useExerciseStore } from '../stores/exerciseStore'
+import { apiFetch } from '../lib/api'
 
 const route = useRoute()
 const exercises = useExerciseStore()
@@ -19,7 +20,7 @@ async function fetchList() {
     if (playerId.value) params.append('playerId', playerId.value)
     if (exerciseKey.value) params.append('exerciseKey', exerciseKey.value)
     params.append('limit', '100')
-    const res = await fetch(`/api/prs?${params.toString()}`)
+    const res = await apiFetch(`/prs?${params.toString()}`)
     const json = await res.json()
     if (!json.ok) throw new Error('Failed to load list')
     list.value = json.data
@@ -28,7 +29,7 @@ async function fetchList() {
 
 async function remove(id) {
   if (!confirm('Delete this PR?')) return
-  await fetch(`/api/prs/${id}`, { method: 'DELETE' })
+  await apiFetch(`/prs/${id}`, { method: 'DELETE' })
   await fetchList()
 }
 
@@ -36,7 +37,7 @@ onMounted(async () => {
   if (exercises.items.length === 0) await exercises.fetchAll()
   await fetchList()
   try {
-    const res = await fetch('/api/health')
+    const res = await apiFetch('/health')
     const json = await res.json()
     apiStatus.value = `${json.status} - ${json.service}`
   } catch { apiStatus.value = 'error' }
