@@ -13,8 +13,20 @@ let addPr, getPrs, deletePr, listPrs
 if (hasPg) {
   // PostgreSQL (recommended for production)
   const { Pool } = require('pg')
+  // Prefer pgBouncer port 5433 on AlwaysData when no port specified in URL
+  let parsedUrl
+  try { parsedUrl = new URL(process.env.DATABASE_URL) } catch (_) {}
+  const urlHost = parsedUrl?.host || ''
+  const urlPort = parsedUrl?.port || ''
+  const isAlwaysData = /alwaysdata/i.test(urlHost)
+  const explicitPortPresent = Boolean(urlPort)
+  const preferredPort = process.env.PGPORT ? Number(process.env.PGPORT) : (isAlwaysData ? 5433 : undefined)
+
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    // Override port only if connection string doesn't already specify one
+    port: explicitPortPresent ? undefined : preferredPort,
+    // Enforce SSL by default (suitable for Vercel & most managed PG)
     ssl: process.env.DATABASE_SSL === 'false' || process.env.DATABASE_SSL === '0' ? false : { rejectUnauthorized: false },
   })
 

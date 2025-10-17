@@ -17,7 +17,8 @@ server.use('/api', api);
 
 // Fallback to SPA index.html in production (after API)
 if (process.env.NODE_ENV === 'production') {
-  server.get('*', (req, res) => {
+  // Use Express 5-compatible catch-all: handle all methods
+  server.all('(.*)', (req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
   });
 }
