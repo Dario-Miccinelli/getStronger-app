@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const cache = require('./cache');
 const { addPr, getPrs, addExercise, getExercises, getLatestByPlayer, deletePr, listPrs } = require('./db');
@@ -8,12 +8,12 @@ app.use(cors());
 app.use(express.json());
 
 // Health
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'GetStronger API' });
 });
 
 // PR API (with 2-minute cache)
-app.get('/api/prs/:playerId/:exerciseKey', async (req, res) => {
+app.get('/prs/:playerId/:exerciseKey', async (req, res) => {
   try {
     const { playerId, exerciseKey } = req.params;
     const key = `prs:${playerId}:${exerciseKey}`;
@@ -28,7 +28,7 @@ app.get('/api/prs/:playerId/:exerciseKey', async (req, res) => {
   }
 });
 
-app.post('/api/prs', async (req, res) => {
+app.post('/prs', async (req, res) => {
   try {
     const { playerId, exerciseKey, weight, reps, rpe, dateISO } = req.body || {};
     if (!playerId || !exerciseKey) {
@@ -44,7 +44,7 @@ app.post('/api/prs', async (req, res) => {
 });
 
 // Exercises API
-app.get('/api/exercises', async (req, res) => {
+app.get('/exercises', async (req, res) => {
   try {
     const key = 'exercises:all';
     const cached = cache.get(key); if (cached) return res.json({ ok: true, data: cached });
@@ -57,7 +57,7 @@ app.get('/api/exercises', async (req, res) => {
   }
 });
 
-app.post('/api/exercises', async (req, res) => {
+app.post('/exercises', async (req, res) => {
   try {
     const { label, key } = req.body || {};
     if (!label && !key) return res.status(400).json({ ok: false, error: 'label or key required' });
@@ -74,7 +74,7 @@ app.post('/api/exercises', async (req, res) => {
 });
 
 // Latest PRs by player
-app.get('/api/prs/latest/:playerId', async (req, res) => {
+app.get('/prs/latest/:playerId', async (req, res) => {
   try {
     const key = `latest:${req.params.playerId}`;
     const cached = cache.get(key); if (cached) return res.json({ ok: true, data: cached });
@@ -88,7 +88,7 @@ app.get('/api/prs/latest/:playerId', async (req, res) => {
 });
 
 // Admin list/delete
-app.get('/api/prs', async (req, res) => {
+app.get('/prs', async (req, res) => {
   try {
     const { playerId, exerciseKey, limit, offset } = req.query;
     const key = `prs:list:${playerId || ''}:${exerciseKey || ''}:${limit || ''}:${offset || ''}`;
@@ -102,7 +102,7 @@ app.get('/api/prs', async (req, res) => {
   }
 });
 
-app.delete('/api/prs/:id', async (req, res) => {
+app.delete('/prs/:id', async (req, res) => {
   try {
     await deletePr(req.params.id);
     cache.clearPrefix('prs:'); cache.clearPrefix('latest:');
@@ -114,4 +114,5 @@ app.delete('/api/prs/:id', async (req, res) => {
 });
 
 module.exports = app;
+
 
