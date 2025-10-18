@@ -30,4 +30,3 @@ onUnmounted(() => {
   <PlayerSelect :players="players" @select="handleSelect" />
 </template>
 
-<style scoped lang="scss"></style>

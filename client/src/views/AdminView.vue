@@ -75,18 +75,4 @@ const exerciseOptions = computed(() => [{ exerciseKey: '', label: 'All exercises
   </section>
 </template>
 
-<style scoped lang="scss">
-.admin { display: grid; gap: 1rem; }
-.filters { display: grid; grid-template-columns: auto auto 1fr auto; gap: .5rem; align-items: end; }
-.pill { align-self: center; background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:.4rem .75rem; }
-label { display: grid; gap: .25rem; }
-select { background:#111827; color:#e5e7eb; border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:.6rem .7rem; }
-.refresh { background:#2563eb; color:white; border:0; border-radius:10px; padding:.6rem .9rem; font-weight:700; }
-.table { list-style:none; margin:0; padding:0; display:grid; gap:.35rem; }
-.row { display:grid; grid-template-columns: 1.2fr 1fr .6fr .4fr .4fr .5fr; gap:.5rem; align-items:center; background:#0f172a; border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:.6rem .7rem; }
-.head { opacity:.7; font-weight:700; }
-.del { background:transparent; color:#ef4444; border:1px solid rgba(239,68,68,.5); border-radius:8px; padding:.35rem .6rem; }
-@media (max-width: 640px) {
-  .row { grid-template-columns: 1.5fr .8fr .5fr .4fr .4fr .6fr; font-size:.9rem; }
-}
-</style>
+<style scoped lang="scss" src="./styles/AdminView.scss"></style>

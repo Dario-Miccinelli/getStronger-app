@@ -69,27 +69,4 @@ const latestByExercise = computed(() => pr.latest[playerId.value] || {})
   </section>
 </template>
 
-<style scoped lang="scss">
-.home { display: grid; gap: 1rem; padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
-.hero { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; }
-.hero__avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
-.hero__avatar-link { display: inline-block; border-radius: 50%; line-height: 0; }
-.hero__avatar-link:active { transform: scale(.98); }
-.title { margin: 0; font-size: clamp(1.2rem, 3.2vw, 1.6rem); }
-.subtitle { margin: .25rem 0 0 0; opacity: .8; }
-
-.list { display: grid; gap: .5rem; }
-.list__item {
-  display: grid; grid-template-columns: 1fr auto; align-items: center;
-  background: #0f172a; border: 1px solid rgba(255,255,255,0.08);
-  color: #e5e7eb; text-decoration: none; padding: .9rem 1rem; border-radius: 14px;
-  position: relative;
-}
-.name { font-weight: 700; }
-.latest { opacity: .9; font-weight: 600; margin-right: .75rem; }
-/* removed arrow chevron */
-
-.add-btn {
-  background: #2563eb; color: white; border: none; border-radius: 10px; font-weight: 800; width: 38px; height: 38px;
-}
-</style>
+<style scoped lang="scss" src="./styles/HomeView.scss"></style>

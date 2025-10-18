@@ -49,24 +49,4 @@ async function createExercise() {
   </div>
 </template>
 
-<style scoped lang="scss">
-.modal {
-  position: fixed; inset: 0; display: grid; place-items: center;
-  background: rgba(0,0,0,.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  z-index: 3000; padding: 1rem;
-}
-.panel {
-  width: min(520px, 100%);
-  background: #0f172a; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;
-  padding: 1rem; box-shadow: 0 20px 40px rgba(0,0,0,.35);
-}
-.title { margin: 0 0 .75rem 0; }
-.form { display: grid; gap: .75rem; }
-label { display: grid; gap: .35rem; }
-input { background:#111827; color:#e5e7eb; border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:.65rem .8rem; }
-.actions { display:flex; justify-content:flex-end; gap:.5rem; margin-top: .25rem; }
-.btn { border-radius:10px; padding:.55rem .9rem; font-weight:700; cursor:pointer; }
-.primary { background:#2563eb; color:white; border:0; }
-.ghost { background:transparent; color:#e5e7eb; border:1px solid rgba(255,255,255,.18); }
-</style>
-.error { color:#ef4444; font-weight:600; margin: 0; }
+<style scoped lang="scss" src="./styles/NewExerciseModal.scss"></style>
