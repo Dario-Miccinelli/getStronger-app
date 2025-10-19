@@ -29,7 +29,6 @@ function start() {
   if (remaining.value <= 0) remaining.value = props.duration
   clearInterval(intervalId)
   intervalId = setInterval(tick, 1000)
-  try { scheduleNotifications(remaining.value) } catch {}
 }
 function pause() {
   running.value = false
@@ -60,17 +59,6 @@ onBeforeUnmount(() => { clearInterval(intervalId) })
 function fmt(sec) {
   const m = Math.floor(sec / 60), s = sec % 60
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-}
-
-// Notifications (best-effort; iOS PWA needs HTTPS for SW notifications)
-async function scheduleNotifications(seconds) {
-  try {
-    const { ensurePermission, notifyStart, scheduleFinish } = await import('../lib/notify')
-    const ok = await ensurePermission()
-    if (!ok) return
-    await notifyStart(props.label || 'Rest timer', seconds)
-    await scheduleFinish(props.label || 'Rest timer', seconds)
-  } catch {}
 }
 </script>
 
