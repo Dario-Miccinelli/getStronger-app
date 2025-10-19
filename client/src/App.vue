@@ -11,7 +11,12 @@ const showBottomNav = computed(() => route.name !== 'select')
 
     <main class="content">
       <transition name="fade-slide" mode="out-in">
-        <router-view />
+        <router-view v-slot="{ Component, route }">
+          <KeepAlive>
+            <component :is="Component" v-if="route.meta && route.meta.keepAlive" />
+          </KeepAlive>
+          <component :is="Component" v-if="!route.meta || !route.meta.keepAlive" />
+        </router-view>
       </transition>
     </main>
     <nav v-if="showBottomNav" class="bottom-nav" role="navigation" aria-label="Bottom navigation">

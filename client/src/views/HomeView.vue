@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onActivated, onBeforeUnmount, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useExerciseStore } from '../stores/exerciseStore'
 import { usePrStore } from '../stores/prStore'
@@ -18,7 +18,7 @@ const showNew = ref(false)
 const exercises = useExerciseStore()
 const pr = usePrStore()
 const plans = usePlanStore()
-const selectedKey = computed({ get: () => plans.selectedKey, set: (v) => { plans.selectedKey = v || '' } })
+const selectedKey = computed({ get: () => plans.selectedKey, set: (v) => { plans.selectForPlayer(playerId.value, v || '') } })
 
 function loadPlayer() {
   const saved = storage.get()
@@ -29,11 +29,22 @@ function loadPlayer() {
 
 onMounted(async () => {
   loadPlayer()
+  plans.loadForPlayer(playerId.value)
   await exercises.fetchAll({ force: true })
   await pr.fetchLatest(playerId.value, { force: true })
-  // Default to "No program" on entry
-  plans.clear()
+  reloadPersisted()
 })
+
+function onPlayerChange() {
+  loadPlayer()
+  plans.loadForPlayer(playerId.value)
+  try { pr.fetchLatest(playerId.value, { force: true }) } catch {}
+  reloadPersisted()
+}
+
+onActivated(() => { onPlayerChange() })
+onBeforeUnmount(() => { try { window.removeEventListener('player-change', onPlayerChange) } catch {} })
+try { window.addEventListener('player-change', onPlayerChange) } catch {}
 
 const latestByExercise = computed(() => pr.latest[playerId.value] || {})
 
@@ -70,9 +81,150 @@ const visibleExercises = computed(() => {
   return filteredPlanItems.value.map(it => mm.get(slug(it.label)))
 })
 
-const runningTimers = ref({})
-function startTimerFor(label) { runningTimers.value[slug(label)] = true }
-function stopTimerFor(label) { runningTimers.value[slug(label)] = false }
+// Persistence helpers (localStorage)
+const TIMERS_KEY = 'restTimersByPlayer_v2'
+const SETS_KEY = 'setsDoneByPlayer_v2'
+function loadJSON(key) {
+  try { return JSON.parse(window.localStorage.getItem(key) || '{}') || {} } catch { return {} }
+}
+function saveJSON(key, val) {
+  try { window.localStorage.setItem(key, JSON.stringify(val || {})) } catch {}
+}
+
+const timersStore = ref(loadJSON(TIMERS_KEY))
+const setsStore = ref(loadJSON(SETS_KEY))
+
+function planKey() { return String(plans.selectedKey || 'none') }
+function itemSlug(it) { return slug(it.label) }
+
+function getTimerState(it) {
+  const p = String(playerId.value || '')
+  const pk = planKey()
+  return timersStore.value?.[p]?.[pk]?.[itemSlug(it)] || null
+}
+function setTimerState(it, next) {
+  const p = String(playerId.value || '')
+  const pk = planKey()
+  const s = itemSlug(it)
+  const root = { ...(timersStore.value || {}) }
+  if (!root[p]) root[p] = {}
+  if (!root[p][pk]) root[p][pk] = {}
+  root[p][pk][s] = next
+  timersStore.value = root
+  saveJSON(TIMERS_KEY, root)
+}
+function clearTimerState(it) {
+  const p = String(playerId.value || '')
+  const pk = planKey()
+  const s = itemSlug(it)
+  const root = { ...(timersStore.value || {}) }
+  if (root[p]?.[pk]?.[s]) delete root[p][pk][s]
+  timersStore.value = root
+  saveJSON(TIMERS_KEY, root)
+}
+
+function isTimerRunning(it) {
+  const st = getTimerState(it)
+  if (!st) return false
+  if (!st.running) return false
+  const elapsed = Math.floor((Date.now() - (st.startedAt || 0)) / 1000)
+  const base = Number(st.duration || 0)
+  return base - elapsed > 0
+}
+function remainingSecFor(it) {
+  const st = getTimerState(it)
+  if (!st) return restDefaultSec(it)
+  if (!st.running) return Number(st.remaining || restDefaultSec(it))
+  const elapsed = Math.floor((Date.now() - (st.startedAt || 0)) / 1000)
+  const base = Number(st.duration || 0)
+  return Math.max(0, base - elapsed)
+}
+function startTimerFor(it) {
+  const dur = restDefaultSec(it)
+  setTimerState(it, { running: true, startedAt: Date.now(), duration: dur })
+}
+function stopTimerFor(it) {
+  const st = getTimerState(it)
+  if (!st) return clearTimerState(it)
+  setTimerState(it, { ...st, running: false, remaining: 0 })
+}
+
+// Sets tracking per plan item (by plan key + label slug)
+function itemKey(it) { return `${String(playerId.value||'') }__${plans.selectedKey || 'none'}__${slug(it.label)}` }
+function targetSets(it) {
+  const m = String(it.scheme || '').match(/(\d+)\s*x\s*\d+/i)
+  return m ? Number(m[1]) : null
+}
+function setsDoneFor(it) {
+  const p = String(playerId.value || '')
+  const pk = planKey()
+  const s = itemSlug(it)
+  return Number(setsStore.value?.[p]?.[pk]?.[s] || 0)
+}
+function setSetsDone(it, n) {
+  const p = String(playerId.value || '')
+  const pk = planKey()
+  const s = itemSlug(it)
+  const root = { ...(setsStore.value || {}) }
+  if (!root[p]) root[p] = {}
+  if (!root[p][pk]) root[p][pk] = {}
+  root[p][pk][s] = Number(n || 0)
+  setsStore.value = root
+  saveJSON(SETS_KEY, root)
+}
+function incSetFor(it) {
+  const tgt = targetSets(it)
+  const cur = setsDoneFor(it)
+  const next = tgt ? Math.min(cur + 1, tgt) : cur + 1
+  setSetsDone(it, next)
+}
+function onRestClick(it) { incSetFor(it); startTimerFor(it) }
+
+function onTimerFinished(it) {
+  stopTimerFor(it)
+}
+function onTimerPaused(it, e) {
+  const st = getTimerState(it) || {}
+  setTimerState(it, { ...st, running: false, remaining: Number(e?.remaining || 0) })
+}
+function onTimerReset(it, e) {
+  const st = getTimerState(it) || {}
+  setTimerState(it, { ...st, running: false, remaining: Number(e?.remaining || restDefaultSec(it)) })
+}
+function onTimerStarted(it, e) {
+  const rem = Number(e?.remaining || restDefaultSec(it))
+  setTimerState(it, { running: true, startedAt: Date.now(), duration: rem })
+}
+
+// Sync on player/program changes
+function reloadPersisted() {
+  // triggers recompute via refs; nothing else needed
+  timersStore.value = loadJSON(TIMERS_KEY)
+  setsStore.value = loadJSON(SETS_KEY)
+}
+
+function resetAll() {
+  const p = String(playerId.value || '')
+  const pk = planKey()
+  // Clear timers for this player
+  const tRoot = { ...(timersStore.value || {}) }
+  if (tRoot[p]?.[pk]) {
+    delete tRoot[p][pk]
+    if (Object.keys(tRoot[p]).length === 0) delete tRoot[p]
+  }
+  timersStore.value = tRoot
+  saveJSON(TIMERS_KEY, tRoot)
+  // Clear sets for this player
+  const sRoot = { ...(setsStore.value || {}) }
+  if (sRoot[p]?.[pk]) {
+    delete sRoot[p][pk]
+    if (Object.keys(sRoot[p]).length === 0) delete sRoot[p]
+  }
+  setsStore.value = sRoot
+  saveJSON(SETS_KEY, sRoot)
+  // Clear selected program for this player
+  plans.clearForPlayer(playerId.value)
+}
 
 function secsToMinLabel(sec) {
   const m = sec / 60
@@ -118,11 +270,11 @@ async function addMissingExercises() {
     <div class="program-controls" role="region" aria-label="Programs">
       <label class="pc-label">
         <span>Program</span>
-        <select v-model="plans.selectedKey">
+        <select v-model="selectedKey">
           <option v-for="p in planOptions" :key="p.key" :value="p.key">{{ p.name }}</option>
         </select>
       </label>
-      <button v-if="plans.selectedKey" class="pc-clear" @click="plans.clear()" aria-label="Clear program">Clear</button>
+      <button v-if="plans.selectedKey" class="pc-clear" @click="resetAll()" aria-label="Reset program">Reset</button>
     </div>
 
     <div v-if="selectedPlan" class="plan-panel" role="region" aria-label="Selected program">
@@ -137,10 +289,20 @@ async function addMissingExercises() {
           <div class="pc-note" v-if="it.note">{{ it.note }}</div>
           <div class="pc-actions">
             <RouterLink v-if="planMapByLabel.get(slug(it.label))" class="pc-open" :to="{ name: 'exercise', params: { key: planMapByLabel.get(slug(it.label)).exerciseKey } }">Open</RouterLink>
-            <button class="pc-done" @click="startTimerFor(it.label)">REST</button>
+            <button class="pc-done" @click="onRestClick(it)">REST</button>
+            <span v-if="targetSets(it)" class="pc-sets" :class="{ done: setsDoneFor(it) >= targetSets(it) }">{{ setsDoneFor(it) }}/{{ targetSets(it) }}</span>
           </div>
-          <div class="pc-timer" v-if="runningTimers[slug(it.label)]">
-            <RestTimer :label="it.label" :duration="restDefaultSec(it)" :autoStart="true" compact @finished="stopTimerFor(it.label)" />
+          <div class="pc-timer" v-if="isTimerRunning(it)">
+            <RestTimer
+              :label="it.label"
+              :duration="remainingSecFor(it)"
+              :autoStart="true"
+              compact
+              @finished="onTimerFinished(it)"
+              @paused="onTimerPaused(it, $event)"
+              @reset="onTimerReset(it, $event)"
+              @started="onTimerStarted(it, $event)"
+            />
           </div>
         </div>
       </div>

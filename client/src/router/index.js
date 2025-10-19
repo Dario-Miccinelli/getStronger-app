@@ -9,7 +9,7 @@ const AdminView = () => import('../views/AdminView.vue')
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', name: 'exercises', component: HomeView },
+    { path: '/', name: 'exercises', component: HomeView, meta: { keepAlive: true } },
     { path: '/exercise/:key', name: 'exercise', component: ExerciseView },
     { path: '/select', name: 'select', component: SelectPlayerView },
     { path: '/admin/:playerId?', name: 'admin', component: AdminView },

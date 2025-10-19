@@ -8,7 +8,7 @@ const props = defineProps({
   label: { type: String, default: '' },
 })
 
-const emit = defineEmits(['finished'])
+const emit = defineEmits(['finished', 'started', 'paused', 'reset'])
 
 const remaining = ref(props.duration)
 const running = ref(false)
@@ -29,13 +29,16 @@ function start() {
   if (remaining.value <= 0) remaining.value = props.duration
   clearInterval(intervalId)
   intervalId = setInterval(tick, 1000)
+  try { emit('started', { remaining: remaining.value }) } catch {}
 }
 function pause() {
   running.value = false
   clearInterval(intervalId); intervalId = null
+  try { emit('paused', { remaining: remaining.value }) } catch {}
 }
 function reset() {
   pause(); remaining.value = props.duration
+  try { emit('reset', { remaining: remaining.value }) } catch {}
 }
 
 function beep() {

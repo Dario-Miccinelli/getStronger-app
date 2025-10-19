@@ -1,8 +1,32 @@
 import { defineStore } from 'pinia'
 
+const PLAN_STORAGE_KEY = 'selectedPlanByPlayer'
+
+function loadMap() {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const raw = window.localStorage.getItem(PLAN_STORAGE_KEY)
+      if (!raw) return {}
+      const obj = JSON.parse(raw)
+      return obj && typeof obj === 'object' ? obj : {}
+    }
+  } catch {}
+  return {}
+}
+
+function saveMap(map) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const clean = map && typeof map === 'object' ? map : {}
+      window.localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(clean))
+    }
+  } catch {}
+}
+
 export const usePlanStore = defineStore('plans', {
   state: () => ({
     selectedKey: '',
+    selectedByPlayer: loadMap(),
     // Strongman 3-day template using only existing exercises
     plans: [
       {
@@ -13,26 +37,22 @@ export const usePlanStore = defineStore('plans', {
           {
             label: 'Barbell Overhead Press',
             scheme: '5x3 @ RPE 8',
-            note: 'Stop with clean aggression. No grinding reps.',
-            restMinSec: 180, restMaxSec: 300,
+            restMinSec: 180
           },
           {
             label: 'Incline Bench Press',
             scheme: '4x6 @ RPE 7.5-8',
-            note: '',
-            restMinSec: 120, restMaxSec: 180,
+            restMinSec: 120
           },
           {
             label: 'Lat Pulldown',
-            scheme: '4x8-12 @ RPE 7-8',
-            note: 'Control the scapula. No swinging.',
-            restMinSec: 90, restMaxSec: 120,
+            scheme: '4x8 @ RPE 7-8',
+            restMinSec: 90 
           },
           {
             label: 'Bench Press',
-            scheme: 'Speed/technique - 6x3 @ RPE 6-7',
-            note: 'Identical bar path. Explosive but clean.',
-            restMinSec: 60, restMaxSec: 90,
+            scheme: '6x3 @ RPE 6-7',
+            restMinSec: 60
           },
         ],
       },
@@ -43,21 +63,18 @@ export const usePlanStore = defineStore('plans', {
         items: [
           {
             label: 'Deadlift',
-            scheme: 'Ramp-up to 3-4 reps top set @ RPE 8-8.5\nThen 3x3 back-off at -10% (~RPE 7-7.5)',
-            note: '',
-            restMinSec: 180, restMaxSec: 300,
+            scheme: '3x3 @-10% PR - RPE 9',
+            restMinSec: 180
           },
           {
             label: 'Leg Press',
             scheme: '4x10 @ RPE 8',
-            note: 'Last reps slow and controlled. Full ROM.',
-            restMinSec: 120, restMaxSec: 120,
+            restMinSec: 120
           },
           {
             label: 'Lat Pulldown',
-            scheme: 'Optional 2x10 @ RPE 7',
-            note: 'Optional back work - keep rest short.',
-            restMinSec: 60, restMaxSec: 90, optional: true,
+            scheme: '2x10 @ RPE 7',
+            restMinSec: 60
           },
         ],
       },
@@ -68,21 +85,18 @@ export const usePlanStore = defineStore('plans', {
         items: [
           {
             label: 'Bench Press',
-            scheme: '5x5 @ RPE 8 (last set)',
-            note: '0.5-1 s micro-pause on chest for stability.',
-            restMinSec: 150, restMaxSec: 180,
+            scheme: '5x5 @ RPE 8',
+            restMinSec: 150
           },
           {
             label: 'Barbell Overhead Press',
-            scheme: 'Technique/volume - 3x8 @ RPE 7',
-            note: 'Elbows under the bar. Vertical path.',
-            restMinSec: 120, restMaxSec: 120,
+            scheme: '3x8 @ RPE 7',
+            restMinSec: 120
           },
           {
             label: 'Leg Press',
             scheme: '4x10 @ RPE 8',
-            note: 'Last 2-3 reps controlled and nasty (in a good way).',
-            restMinSec: 120, restMaxSec: 120,
+            restMinSec: 120
           },
         ],
       },
@@ -92,7 +106,24 @@ export const usePlanStore = defineStore('plans', {
     selected(state) { return state.plans.find(p => p.key === state.selectedKey) || null },
   },
   actions: {
-    select(key) { this.selectedKey = key || '' },
-    clear() { this.selectedKey = '' },
+    loadForPlayer(playerId) {
+      const id = String(playerId || '')
+      this.selectedKey = this.selectedByPlayer[id] || ''
+    },
+    selectForPlayer(playerId, key) {
+      const id = String(playerId || '')
+      const v = key || ''
+      this.selectedKey = v
+      this.selectedByPlayer = { ...this.selectedByPlayer, [id]: v }
+      saveMap(this.selectedByPlayer)
+    },
+    clearForPlayer(playerId) {
+      const id = String(playerId || '')
+      this.selectedKey = ''
+      const next = { ...this.selectedByPlayer }
+      delete next[id]
+      this.selectedByPlayer = next
+      saveMap(this.selectedByPlayer)
+    },
   },
 })
