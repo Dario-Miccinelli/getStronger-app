@@ -66,12 +66,15 @@ body {
 
 .content {
   padding: clamp(0.75rem, 3vw, 1.25rem);
+  padding-top: max(clamp(0.75rem, 3vw, 1.25rem), env(safe-area-inset-top));
   padding-bottom: calc(72px + env(safe-area-inset-bottom));
   background: transparent; /* gradient lives on .app::before; base stays on .app */
   position: relative;
   z-index: 1; /* render above decorative ::before layer */
   isolation: isolate; /* create stacking context for predictable backdrop compositing */
   overscroll-behavior-y: contain; /* avoid rubber-band body reveal on iOS */
+  max-width: 980px;
+  margin: 0 auto;
 }
 
 .player-info {
@@ -151,4 +154,3 @@ body {
     background: rgba(15, 23, 42, 0.98);
   }
 }
-

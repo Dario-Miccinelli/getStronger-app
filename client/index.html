@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Get Stronger</title>
   </head>
@@ -11,9 +12,12 @@
     <script type="module" src="/src/main.js"></script>
     <script type="module">
       import faviconUrl from '/src/assets/images/favicon.ico';
+      import { setupDynamicIcons } from '/src/lib/icons.js';
       const link = document.querySelector('link[rel=\"icon\"]') || (() => { const l=document.createElement('link'); l.rel='icon'; document.head.appendChild(l); return l; })();
       link.type = 'image/x-icon';
       link.href = faviconUrl;
+      // Dynamically set iOS + manifest icons based on selected player
+      try { setupDynamicIcons() } catch {}
     </script>
   </body>
 </html>

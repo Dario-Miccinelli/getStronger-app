@@ -17,9 +17,16 @@ server.use('/api', api);
 
 // Fallback to SPA index.html in production (after API)
 if (process.env.NODE_ENV === 'production') {
-  // Use Express 5-compatible catch-all: handle all methods
-  server.all('(.*)', (req, res) => {
-    res.sendFile(path.join(clientDist, 'index.html'));
+  // SPA fallback for non-API GET requests without a file extension
+  server.use((req, res, next) => {
+    try {
+      if (req.method !== 'GET') return next();
+      if (req.path && req.path.startsWith('/api')) return next();
+      if (/\.[a-zA-Z0-9]{2,5}$/.test(req.path || '')) return next();
+      const accept = String(req.headers.accept || '');
+      if (!accept.includes('text/html')) return next();
+      return res.sendFile(path.join(clientDist, 'index.html'));
+    } catch (_) { return next(); }
   });
 }
 

@@ -4,6 +4,7 @@ import './styles/app.scss'
 import App from './App.vue'
 import { router } from './router'
 import { createPinia } from 'pinia'
+import { registerSW } from 'virtual:pwa-register'
 
 const app = createApp(App)
 app.use(createPinia())
@@ -14,3 +15,6 @@ app.use(router)
 router.isReady().then(() => {
   app.mount('#app')
 })
+
+// Register Service Worker for PWA (autoUpdate enabled in Vite config)
+try { registerSW({ immediate: true }) } catch {}

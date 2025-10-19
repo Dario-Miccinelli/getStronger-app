@@ -15,6 +15,12 @@ npm-debug.log*
 client/node_modules/
 server/node_modules/
 client/dist/
+ 
+### PWA build artifacts (generated at build time)
+client/dist/sw.js
+client/dist/workbox-*.js
+client/dist/assets/workbox-window*.js
+client/dev-dist/
 
 ### Local dev artifacts
 server-dev.log

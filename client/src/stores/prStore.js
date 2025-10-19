@@ -65,12 +65,3 @@ export const usePrStore = defineStore('pr', {
     },
   },
 })
-
-export const EXERCISES = [
-  { key: 'deadlift', label: 'Deadlift' },
-  { key: 'bench_press', label: 'Bench Press' },
-  { key: 'incline_bench', label: 'Incline Bench Press' },
-  { key: 'leg_press', label: 'Leg Press' },
-  { key: 'lat_pulldown', label: 'Lat Pulldown' },
-  { key: 'barbell_ohp', label: 'Barbell Overhead Press' },
-]

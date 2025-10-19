@@ -113,6 +113,37 @@ app.delete('/prs/:id', async (req, res) => {
   }
 });
 
+// Web Push scheduling (best-effort) for finish notifications
+let webPush;
+try { webPush = require('web-push') } catch {}
+
+const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY || ''
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY || ''
+if (webPush && VAPID_PUBLIC && VAPID_PRIVATE) {
+  try { webPush.setVapidDetails('mailto:admin@example.com', VAPID_PUBLIC, VAPID_PRIVATE) } catch {}
+}
+
+app.get('/notify/vapid', (req, res) => {
+  res.json({ publicKey: VAPID_PUBLIC || null })
+})
+
+app.post('/notify/schedule', async (req, res) => {
+  try {
+    if (!webPush || !VAPID_PUBLIC || !VAPID_PRIVATE) return res.status(501).json({ ok: false, error: 'push_unavailable' })
+    const { subscription, delaySec = 0, title = 'Timer', body = 'Done', tag = 'timer' } = req.body || {}
+    if (!subscription?.endpoint) return res.status(400).json({ ok: false, error: 'invalid_subscription' })
+    const payload = JSON.stringify({ title, body, tag })
+    const delay = Math.max(0, Number(delaySec) || 0) * 1000
+    setTimeout(() => {
+      webPush.sendNotification(subscription, payload).catch(() => {})
+    }, delay)
+    res.json({ ok: true })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ ok: false })
+  }
+})
+
 module.exports = app;
 
 
