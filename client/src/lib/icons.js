@@ -64,7 +64,27 @@ async function buildDynamicManifest(baseUrl, photoSrc) {
     const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' })
     return URL.createObjectURL(blob)
   } catch (e) {
-    return null
+    // Fallback: build a minimal manifest on the fly
+    try {
+      const icon192 = await toPngDataUrl(photoSrc, 192)
+      const icon512 = await toPngDataUrl(photoSrc, 512)
+      const manifest = {
+        name: 'Get Stronger',
+        short_name: 'Stronger',
+        start_url: '/',
+        display: 'standalone',
+        background_color: '#0b1020',
+        theme_color: '#0b1020',
+        icons: [
+          { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+        ],
+      }
+      const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' })
+      return URL.createObjectURL(blob)
+    } catch {
+      return null
+    }
   }
 }
 
@@ -75,8 +95,14 @@ async function applyIconsFor(playerId) {
   try { apple.href = await toPngDataUrl(photoSrc, 180) } catch { apple.href = photoSrc }
 
   // Manifest icons (Android/Chrome A2HS)
-  const manifestLink = document.querySelector('link[rel="manifest"]') || ensureLink('manifest')
   const baseUrl = (document.baseURI || '/').replace(/[^/]*$/, '')
+  const manifestLink = document.querySelector('link[rel="manifest"]') || ensureLink('manifest')
+  // Pre-attach a minimal valid manifest to avoid console parse errors
+  try {
+    const minimal = { name: 'Get Stronger', short_name: 'Stronger', start_url: '/', display: 'standalone', icons: [] }
+    const blob = new Blob([JSON.stringify(minimal)], { type: 'application/manifest+json' })
+    manifestLink.href = URL.createObjectURL(blob)
+  } catch {}
   const dynHref = await buildDynamicManifest(baseUrl, photoSrc)
   if (dynHref) manifestLink.href = dynHref
 }
@@ -91,4 +117,3 @@ export function setupDynamicIcons() {
     try { applyIconsFor(storage.get() || '1') } catch {}
   })
 }
-
