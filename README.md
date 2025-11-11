@@ -28,13 +28,6 @@ Notes
 - No database required for local dev: the API falls back to a LokiJS JSON DB at `server/data/getstronger.db.json`.
 - The Vite dev server proxies `/api` to `http://localhost:3001` (see `client/vite.config.js`).
 
-Environment Variables
-- Copy `server/.env.example` to `server/.env` and adjust as needed:
-  - `DATABASE_URL` — Postgres connection string (required in production). Example: `postgresql://USER:PASSWORD@HOST:PORT/DBNAME?sslmode=require`
-  - `DATABASE_SSL` — `true` to enforce SSL (default). Set to `false` only if your DB doesn’t require SSL.
-- AlwaysData tip: prefer pgBouncer on port 5433 (the server will default to 5433 when appropriate).
-- Client API base: by default, dev uses `/api` and production uses the value defined in `client/src/lib/api.js`. You can override at build time with `VITE_API_BASE`.
-
 Scripts
 - Root:
   - `npm run dev` — run server (`nodemon`) and client (`vite`) together
